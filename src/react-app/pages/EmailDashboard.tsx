@@ -150,6 +150,8 @@ export default function EmailDashboard() {
   const [selectedEmail, setSelectedEmail] = useState<EmailItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(384); // 96 * 4 = 384px (w-96)
+  const [isResizing, setIsResizing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState<'date' | 'sender' | 'priority' | 'subject' | 'status' | 'company'>('date');
@@ -173,32 +175,107 @@ export default function EmailDashboard() {
   const { theme, toggleTheme } = useTheme();
   const loadingRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
+  const resizeRef = useRef<HTMLDivElement>(null);
+
+  // Resize handler for sidebar
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      
+      const newWidth = Math.max(280, Math.min(600, e.clientX)); // Min 280px, max 600px
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    if (isResizing) {
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
 
   // Custom cursor effect
   useEffect(() => {
+    // Remove any existing cursors first
+    const existingCursor = document.getElementById('custom-cursor');
+    const existingGlow = document.getElementById('cursor-glow');
+    if (existingCursor) existingCursor.remove();
+    if (existingGlow) existingGlow.remove();
+
     const cursor = document.createElement('div');
     cursor.id = 'custom-cursor';
     cursor.style.willChange = 'transform';
+    cursor.style.pointerEvents = 'none';
     document.body.appendChild(cursor);
 
     const cursorGlow = document.createElement('div');
     cursorGlow.id = 'cursor-glow';
     cursorGlow.style.willChange = 'transform';
+    cursorGlow.style.pointerEvents = 'none';
     document.body.appendChild(cursorGlow);
 
+    let rafId: number;
+
     const moveCursor = (e: MouseEvent) => {
-      requestAnimationFrame(() => {
+      if (rafId) cancelAnimationFrame(rafId);
+      
+      rafId = requestAnimationFrame(() => {
         cursor.style.left = e.clientX + 'px';
         cursor.style.top = e.clientY + 'px';
-        cursorGlow.style.left = e.clientX - 150 + 'px';
-        cursorGlow.style.top = e.clientY - 150 + 'px';
+        cursor.style.opacity = '1';
+        
+        cursorGlow.style.left = (e.clientX - 175) + 'px';
+        cursorGlow.style.top = (e.clientY - 175) + 'px';
+        cursorGlow.style.opacity = '1';
       });
     };
 
+    const handleMouseDown = () => {
+      cursor.classList.add('clicking');
+    };
+
+    const handleMouseUp = () => {
+      cursor.classList.remove('clicking');
+    };
+
+    const handleMouseEnter = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('button') || target.closest('a')) {
+        cursor.classList.add('hovering');
+      }
+    };
+
+    const handleMouseLeave = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('button') || target.closest('a')) {
+        cursor.classList.remove('hovering');
+      }
+    };
+
     document.addEventListener('mousemove', moveCursor);
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mouseover', handleMouseEnter);
+    document.addEventListener('mouseout', handleMouseLeave);
 
     return () => {
+      if (rafId) cancelAnimationFrame(rafId);
       document.removeEventListener('mousemove', moveCursor);
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseover', handleMouseEnter);
+      document.removeEventListener('mouseout', handleMouseLeave);
       cursor.remove();
       cursorGlow.remove();
     };
@@ -425,11 +502,14 @@ export default function EmailDashboard() {
         {/* Main Container */}
         <div className="flex h-[calc(100vh-57px)] relative mt-[57px]">
           {/* Sidebar */}
-          <aside className={`${
-            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } lg:translate-x-0 fixed lg:static top-[57px] bottom-0 left-0 z-30 w-96 ${
-            theme === 'dark' ? 'bg-black/98 border-violet-900/30' : 'bg-white/95 border-gray-200'
-          } backdrop-blur-sm border-r transition-transform duration-300 lg:transition-none overflow-y-auto scrollbar-thin`}>
+          <aside 
+            className={`relative ${
+              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            } lg:translate-x-0 fixed lg:static top-[57px] bottom-0 left-0 z-30 ${
+              theme === 'dark' ? 'bg-black/98 border-violet-900/30' : 'bg-white/95 border-gray-200'
+            } backdrop-blur-sm border-r transition-transform duration-300 lg:transition-none overflow-y-auto scrollbar-thin`}
+            style={{ width: `${sidebarWidth}px` }}
+          >
             
             {/* Stats Dashboard */}
             <div className="p-4">
@@ -537,6 +617,24 @@ export default function EmailDashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Resize Handle */}
+            <div
+              ref={resizeRef}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsResizing(true);
+              }}
+              className={`absolute top-0 right-0 bottom-0 w-1 cursor-col-resize group hidden lg:block ${
+                theme === 'dark' ? 'hover:bg-violet-500/50' : 'hover:bg-violet-400/50'
+              } transition-colors z-50`}
+            >
+              <div className={`absolute inset-y-0 -right-1 w-3 ${
+                isResizing 
+                  ? 'bg-violet-500/30' 
+                  : 'bg-transparent group-hover:bg-violet-500/20'
+              }`} />
             </div>
           </aside>
 

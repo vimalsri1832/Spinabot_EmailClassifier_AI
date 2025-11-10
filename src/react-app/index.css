@@ -75,23 +75,56 @@
   width: 0px;
   height: 0px;
   pointer-events: none;
-  z-index: 10000;
+  z-index: 1000000;
   will-change: transform;
-  transform: translate3d(0, 0, 0);
+  transform: translate3d(-50%, -50%, 0);
+  transition: width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+  opacity: 1;
+}
+
+#custom-cursor::before {
+  display: none;
+}
+
+#custom-cursor::after {
+  display: none;
+}
+
+#custom-cursor.clicking {
+  width: 0px;
+  height: 0px;
+}
+
+#custom-cursor.clicking::before {
+  display: none;
+}
+
+#custom-cursor.hovering {
+  width: 0px;
+  height: 0px;
+}
+
+#custom-cursor.hovering::before {
+  display: none;
+}
+
+#custom-cursor.hovering::after {
+  display: none;
 }
 
 #cursor-glow {
   position: fixed;
-  width: 300px;
-  height: 300px;
+  width: 350px;
+  height: 350px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, rgba(255, 165, 0, 0.15) 30%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, rgba(255, 165, 0, 0.2) 30%, rgba(255, 140, 0, 0.1) 50%, transparent 70%);
   pointer-events: none;
-  z-index: 9999;
-  filter: blur(40px);
+  z-index: 999999;
+  filter: blur(60px);
   mix-blend-mode: screen;
   will-change: transform;
   transform: translate3d(0, 0, 0);
+  opacity: 1;
 }
 
 /* Custom checkbox styling */
