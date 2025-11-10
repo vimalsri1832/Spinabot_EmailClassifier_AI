@@ -382,6 +382,16 @@ export default function EmailDashboard() {
                 <span className={`text-xl font-bold ${theme === 'dark' ? 'bg-gradient-to-r from-white to-gray-300' : 'bg-gradient-to-r from-gray-900 to-gray-600'} bg-clip-text text-transparent`}>
                   SPINABOT
                 </span>
+                
+                {/* Connected Tool Badge */}
+                {localStorage.getItem('connectedTool') && (
+                  <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg ${theme === 'dark' ? 'bg-violet-500/10 border border-violet-500/30' : 'bg-violet-100 border border-violet-300'}`}>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-sm font-medium capitalize">
+                      {localStorage.getItem('connectedTool')} Connected
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Right Section */}
@@ -392,6 +402,17 @@ export default function EmailDashboard() {
                 >
                   {theme === 'dark' ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
                 </button>
+                
+                {/* Email Provider Badge */}
+                {localStorage.getItem('connectedEmail') && (
+                  <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/30' : 'bg-blue-100 border border-blue-300'}`}>
+                    <Inbox className="w-4 h-4 text-blue-400" />
+                    <span className="text-sm font-medium capitalize">
+                      {localStorage.getItem('connectedEmail')}
+                    </span>
+                  </div>
+                )}
+                
                 <div className="flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-violet-500/10 to-purple-600/10 border border-violet-500/20 rounded-xl">
                   <User className="w-6 h-6 text-violet-400" />
                   <span className="text-base font-medium hidden sm:inline">{localStorage.getItem('userEmail') || 'user@example.com'}</span>

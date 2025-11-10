@@ -38,7 +38,7 @@ export default function EmailLogin() {
     localStorage.setItem('userProvider', selectedProvider);
     
     setIsLoading(false);
-    navigate('/email-settings');
+    navigate('/integration-selection');
   };
 
   return (

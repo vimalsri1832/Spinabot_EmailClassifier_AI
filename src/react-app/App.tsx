@@ -6,6 +6,8 @@ import CursorGlow from '@/react-app/components/CursorGlow';
 import Home from '@/react-app/pages/Home';
 import EmailProviders from '@/react-app/pages/EmailProviders';
 import EmailLogin from '@/react-app/pages/EmailLogin';
+import IntegrationSelection from '@/react-app/pages/IntegrationSelection';
+import ToolCredentials from '@/react-app/pages/ToolCredentials';
 import TaskSelection from '@/react-app/pages/TaskSelection';
 import TaskCredentials from '@/react-app/pages/TaskCredentials';
 import EmailSettings from '@/react-app/pages/EmailSettings';
@@ -33,11 +35,14 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/email-providers" element={<EmailProviders />} />
             <Route path="/email-login" element={<EmailLogin />} />
+            <Route path="/integration-selection" element={<IntegrationSelection />} />
+            <Route path="/tool-credentials" element={<ToolCredentials />} />
             <Route path="/task-selection" element={<TaskSelection />} />
             <Route path="/task-credentials" element={<TaskCredentials />} />
             <Route path="/email-settings" element={<EmailSettings />} />
             <Route path="/email-classifier" element={<EmailClassifier />} />
             <Route path="/dashboard" element={<EmailDashboard />} />
+            <Route path="/email-dashboard" element={<EmailDashboard />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/products" element={<Products />} />
           </Routes>
