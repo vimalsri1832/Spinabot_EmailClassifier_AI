@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { ThemeProvider } from '@/react-app/components/ThemeProvider';
 import CursorGlow from '@/react-app/components/CursorGlow';
+import { BackgroundBeams } from '@/react-app/components/BackgroundBeams';
 
 // Pages
 import Home from '@/react-app/pages/Home';
@@ -21,8 +22,11 @@ function App() {
     <ThemeProvider>
       <BrowserRouter>
         <div className="min-h-screen bg-black text-white relative overflow-hidden">
+          {/* Animated Background Beams */}
+          <BackgroundBeams className="fixed inset-0" />
+          
           {/* Animated Background */}
-          <div className="fixed inset-0 bg-gradient-to-br from-black via-gray-900 to-violet-900/20 animate-pulse" />
+          <div className="fixed inset-0 bg-gradient-to-br from-black via-gray-900 to-violet-900/20" />
           
           {/* Floating Gradient Orbs */}
           <div className="fixed top-1/4 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl animate-pulse opacity-20" />

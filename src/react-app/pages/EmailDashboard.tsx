@@ -13,6 +13,7 @@ import Button from '@/react-app/components/Button';
 import Input from '@/react-app/components/Input';
 import Card from '@/react-app/components/Card';
 import Chatbot from '@/react-app/components/Chatbot';
+import AnimatedBackground from '@/react-app/components/AnimatedBackground';
 
 interface EmailItem {
   id: string;
@@ -441,11 +442,17 @@ export default function EmailDashboard() {
   return (
     <>
       <div ref={dashboardRef} className={`h-screen overflow-hidden ${theme === 'dark' ? 'bg-black text-white' : 'bg-gray-50 text-gray-900'} transition-colors duration-300 relative`}>
-        {/* Animated Background Gradients */}
-        <div className={`fixed inset-0 ${theme === 'dark' ? 'bg-black' : 'bg-gradient-to-br from-gray-50 via-white to-violet-100/30'}`} />
-        <div className={`fixed top-1/4 left-1/4 w-96 h-96 ${theme === 'dark' ? 'bg-violet-600/10' : 'bg-violet-300/20'} rounded-full blur-3xl animate-pulse opacity-30 floating-animation`} />
-        <div className={`fixed top-1/4 right-1/4 w-80 h-80 ${theme === 'dark' ? 'bg-purple-600/10' : 'bg-purple-300/20'} rounded-full blur-3xl animate-pulse opacity-30 animation-delay-1000 floating-animation`} />
-        <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 ${theme === 'dark' ? 'bg-violet-500/5' : 'bg-indigo-300/20'} rounded-full blur-3xl animate-pulse opacity-20 animation-delay-2000 floating-animation`} />
+        {/* Animated Background */}
+        {theme === 'dark' && <AnimatedBackground />}
+        
+        {/* Fallback simple gradients for light mode */}
+        {theme !== 'dark' && (
+          <>
+            <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-white to-violet-100/30" />
+            <div className="fixed top-1/4 left-1/4 w-96 h-96 bg-violet-300/20 rounded-full blur-3xl animate-pulse opacity-30 floating-animation" />
+            <div className="fixed top-1/4 right-1/4 w-80 h-80 bg-purple-300/20 rounded-full blur-3xl animate-pulse opacity-30 animation-delay-1000 floating-animation" />
+          </>
+        )}
         
         {/* Navigation Bar */}
         <nav className={`fixed top-0 left-0 right-0 z-50 ${theme === 'dark' ? 'bg-black/60' : 'bg-white/60'} backdrop-blur-lg border-b ${theme === 'dark' ? 'border-violet-900/30' : 'border-gray-200'}`}>
@@ -1033,15 +1040,20 @@ export default function EmailDashboard() {
               {filteredEmails.map((email) => (
                 <div
                   key={email.id}
-                  className={`flex gap-4 items-center px-8 py-5 border-b transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/20 cursor-pointer group gradient-hover ${
+                  className={`flex gap-4 items-center px-8 py-5 border-b transition-all duration-300 cursor-pointer group relative overflow-hidden ${
                     theme === 'dark' 
-                      ? 'border-violet-900/30 hover:bg-gradient-to-r hover:from-violet-500/10 hover:to-purple-600/10' 
-                      : 'border-gray-200 hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50'
-                  } ${!email.is_read ? 'bg-violet-500/5 border-l-4 border-l-violet-500' : ''} ${selectedEmails.has(email.id) ? 'bg-violet-500/20' : ''}`}
+                      ? 'border-violet-900/30 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/30' 
+                      : 'border-gray-200 hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50 hover:border-violet-300'
+                  } ${!email.is_read ? 'bg-violet-500/5 border-l-4 border-l-violet-500' : ''} ${selectedEmails.has(email.id) ? theme === 'dark' ? 'bg-violet-500/20' : 'bg-violet-100' : ''}`}
                   onClick={() => handleEmailClick(email)}
                 >
+                  {/* Animated gradient overlay on hover (dark mode only) */}
+                  {theme === 'dark' && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-600/0 via-violet-500/20 to-purple-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none animate-gradient-x" />
+                  )}
+                  
                   {/* Checkbox */}
-                  <div className="w-10 flex items-center">
+                  <div className="w-10 flex items-center z-10">
                     <input
                       type="checkbox"
                       checked={selectedEmails.has(email.id)}
