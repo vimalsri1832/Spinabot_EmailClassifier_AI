@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 
 export default function CursorGlow() {
+  // Cursor glow disabled - using default cursor
+  return null;
+  
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   useEffect(() => {
     // Remove any existing cursors first
     const existingCursor = document.getElementById('custom-cursor');

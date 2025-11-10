@@ -149,7 +149,8 @@
   box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
 }
 
-/* Custom Cursor with Golden Glow */
+/* Custom Cursor with Golden Glow - DISABLED */
+/* Using default cursor instead
 * {
   cursor: none !important;
 }
@@ -210,6 +211,7 @@
   transform: translate3d(0, 0, 0);
   opacity: 1;
 }
+*/
 
 /* Custom checkbox styling */
 input[type="checkbox"] {

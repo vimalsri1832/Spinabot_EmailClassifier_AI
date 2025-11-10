@@ -5,7 +5,7 @@ import {
   Tag, Moon, Sun, User, Menu, X,
   CheckCircle, Inbox,
   Send, Users, TrendingUp, Clock, Eye,
-  Paperclip, Mail
+  Paperclip, Mail, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { PRIORITY_COLORS } from '@/shared/types';
 import { useTheme } from '@/react-app/components/ThemeProvider';
@@ -153,8 +153,13 @@ export default function EmailDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(384); // 96 * 4 = 384px (w-96)
   const [isResizing, setIsResizing] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
+  // const [aiPrompt, setAiPrompt] = useState('');
+  // const [aiResponse, setAiResponse] = useState('');
+  // const [aiLoading, setAiLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [sortBy, setSortBy] = useState<'date' | 'sender' | 'priority' | 'subject' | 'status' | 'company'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [priorityFilter, setPriorityFilter] = useState<number | null>(null);
@@ -506,80 +511,120 @@ export default function EmailDashboard() {
           </div>
         </nav>
 
-        {/* Main Container */}
-        <div className="flex h-[calc(100vh-57px)] relative mt-[57px]">
-          {/* Sidebar */}
-          <aside 
-            className={`relative ${
-              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            } lg:translate-x-0 fixed lg:static top-[57px] bottom-0 left-0 z-30 ${
-              theme === 'dark' ? 'bg-black/98 border-violet-900/30' : 'bg-white/95 border-gray-200'
-            } backdrop-blur-sm border-r transition-transform duration-300 lg:transition-none overflow-y-auto scrollbar-thin`}
-            style={{ width: `${sidebarWidth}px` }}
-          >
-            
-            {/* Stats Dashboard */}
-            <div className="p-4">
-              <h3 className="text-lg font-semibold mb-3">Overview</h3>
-              <div className="grid grid-cols-1 gap-2">
-                {stats.map((stat, index) => (
-                  <Card key={index} variant="glow" hover className="stat-card p-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</p>
-                        <p className="text-lg font-bold mt-0.5">{stat.value}</p>
-                      </div>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        stat.positive 
-                          ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                          : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                      }`}>
-                        {stat.change}
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+        {/* Main Container - HubSpot Style */}
+        <div className="h-[calc(100vh-57px)] relative mt-[72px] flex flex-col">
+          {/* Categories Bar - Top of page like HubSpot */}
+          <div className={`${theme === 'dark' ? 'bg-black/95 border-violet-900/30' : 'bg-white border-gray-200'} border-b px-6 py-4 flex items-center justify-between overflow-x-auto scrollbar-thin relative z-10`}>
+            <div className="flex items-center space-x-2">
+              {categories.map((category) => {
+                const IconComponent = category.icon;
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg whitespace-nowrap transition-all duration-200 ${
+                      selectedCategory === category.id
+                        ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30'
+                        : `${theme === 'dark' ? 'text-gray-300 hover:bg-violet-900/20' : 'text-gray-700 hover:bg-gray-100'}`
+                    }`}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                    <span className="font-medium text-sm">{category.name}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      selectedCategory === category.id
+                        ? 'bg-white/20 text-white'
+                        : 'bg-violet-500/10 text-violet-500'
+                    }`}>
+                      {category.count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
+            
+            {/* Actions */}
+            <button
+              onClick={() => setShowAIPanel(!showAIPanel)}
+              className="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-violet-500/50 transition-all duration-300 flex items-center space-x-2 ml-4"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span className="font-medium text-sm">AI Assistant</span>
+            </button>
+          </div>
+          
+          {/* Main Content Area */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Sidebar with Overview Stats - Collapsible */}
+            <aside 
+              className={`${
+                isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+              } lg:translate-x-0 fixed lg:static top-[133px] bottom-0 left-0 z-30 ${
+                theme === 'dark' ? 'bg-black/98 border-violet-900/30' : 'bg-white/95 border-gray-200'
+              } backdrop-blur-sm border-r transition-all duration-300 overflow-y-auto scrollbar-thin relative`}
+              style={{ width: isSidebarCollapsed ? '60px' : `${sidebarWidth}px` }}
+            >
+              
+              {/* Collapse/Expand Button - Better positioned */}
+              {!isSidebarCollapsed && (
+                <button
+                  onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                  className={`absolute top-6 right-4 z-50 w-8 h-8 rounded-lg ${
+                    theme === 'dark' ? 'bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30' : 'bg-violet-100 hover:bg-violet-200 border border-violet-300'
+                  } text-violet-500 shadow-md flex items-center justify-center transition-all duration-200 hover:scale-105`}
+                  title="Collapse sidebar"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              )}
+              
+              {isSidebarCollapsed && (
+                <button
+                  onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                  className={`absolute top-6 left-1/2 -translate-x-1/2 z-50 w-8 h-8 rounded-lg ${
+                    theme === 'dark' ? 'bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30' : 'bg-violet-100 hover:bg-violet-200 border border-violet-300'
+                  } text-violet-500 shadow-md flex items-center justify-center transition-all duration-200 hover:scale-105`}
+                  title="Expand sidebar"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
 
-            {/* Navigation */}
-            <div className="px-6 pb-6">
-              <nav className="space-y-2">
-                <div className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider mb-3`}>
-                  Categories
-                </div>
-                {categories.map((category) => {
-                  const IconComponent = category.icon;
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() => setSelectedCategory(category.id)}
-                      className={`w-full flex items-center justify-between px-5 py-4 rounded-xl transition-all duration-200 hover:scale-[1.02] ${
-                        selectedCategory === category.id
-                          ? 'bg-gradient-to-r from-violet-500/20 to-purple-600/20 border border-violet-500/30 text-white shadow-lg shadow-violet-500/20'
-                          : `${theme === 'dark' ? 'text-gray-300 hover:bg-violet-950/20' : 'text-gray-700 hover:bg-gray-100/50'} hover:text-violet-400`
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <IconComponent className="w-6 h-6" />
-                        <span className="font-medium text-base">{category.name}</span>
-                      </div>
-                      <span className="text-sm bg-gradient-to-r from-violet-500 to-purple-600 text-white px-3 py-1.5 rounded-full">
-                        {category.count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </nav>
+              {!isSidebarCollapsed ? (
+                <>
+                  {/* Stats Dashboard */}
+                  <div className="p-4 mt-12">
+                    <h3 className="text-lg font-semibold mb-3">Overview</h3>
+                    <div className="grid grid-cols-1 gap-2">
+                      {stats.map((stat, index) => (
+                        <Card key={index} variant="glow" hover className="stat-card p-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</p>
+                              <p className="text-lg font-bold mt-0.5">{stat.value}</p>
+                            </div>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              stat.positive 
+                                ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                                : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            }`}>
+                              {stat.change}
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
 
-              {/* Filters */}
-              <div className="mt-8">
-                <div className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider mb-3`}>
-                  Filters
-                </div>
-                
-                {/* Priority Filter */}
-                <div className="mb-4">
+                  {/* Filters Section in Sidebar */}
+                  <div className="px-6 pb-6">
+                    <div className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider mb-3`}>
+                      Filters
+                    </div>
+                    
+                    {/* Priority Filter */}
+                    <div className="mb-4">
                   <label className={`block text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Priority</label>
                   <select
                     value={priorityFilter || ''}
@@ -624,47 +669,63 @@ export default function EmailDashboard() {
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Resize Handle */}
-            <div
-              ref={resizeRef}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                setIsResizing(true);
-              }}
-              className={`absolute top-0 right-0 bottom-0 w-1 cursor-col-resize group hidden lg:block ${
-                theme === 'dark' ? 'hover:bg-violet-500/50' : 'hover:bg-violet-400/50'
-              } transition-colors z-50`}
-            >
-              <div className={`absolute inset-y-0 -right-1 w-3 ${
-                isResizing 
-                  ? 'bg-violet-500/30' 
-                  : 'bg-transparent group-hover:bg-violet-500/20'
-              }`} />
+              {/* Resize Handle */}
+              <div
+                ref={resizeRef}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setIsResizing(true);
+                }}
+                className={`absolute top-0 right-0 bottom-0 w-1 cursor-col-resize group hidden lg:block ${
+                  theme === 'dark' ? 'hover:bg-violet-500/50' : 'hover:bg-violet-400/50'
+                } transition-colors z-50`}
+              >
+                <div className={`absolute inset-y-0 -right-1 w-3 ${
+                  isResizing 
+                    ? 'bg-violet-500/30' 
+                    : 'bg-transparent group-hover:bg-violet-500/20'
+                }`} />
+              </div>
+            </>
+          ) : (
+            <div className="p-4 flex flex-col items-center space-y-4 mt-16">
+              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-violet-500/10 hover:bg-violet-500/20' : 'bg-violet-100 hover:bg-violet-200'} transition-colors cursor-pointer`} title="Total Emails">
+                <Inbox className="w-5 h-5 text-violet-500" />
+              </div>
+              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-violet-500/10 hover:bg-violet-500/20' : 'bg-violet-100 hover:bg-violet-200'} transition-colors cursor-pointer`} title="Priority">
+                <TrendingUp className="w-5 h-5 text-violet-500" />
+              </div>
+              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-violet-500/10 hover:bg-violet-500/20' : 'bg-violet-100 hover:bg-violet-200'} transition-colors cursor-pointer`} title="Team">
+                <Users className="w-5 h-5 text-violet-500" />
+              </div>
+              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-violet-500/10 hover:bg-violet-500/20' : 'bg-violet-100 hover:bg-violet-200'} transition-colors cursor-pointer`} title="Filter">
+                <Filter className="w-5 h-5 text-violet-500" />
+              </div>
             </div>
+          )}
           </aside>
 
           {/* Main Table Content */}
           <main className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${showChatbot ? 'mr-96' : ''}`}>
             {/* Table Header */}
-            <div className={`px-8 py-5 border-b ${theme === 'dark' ? 'border-violet-900/30' : 'border-gray-200'}`}>
+            <div className={`px-8 py-6 border-b ${theme === 'dark' ? 'border-violet-900/30 bg-black/20' : 'border-gray-200 bg-white/50'} backdrop-blur-sm`}>
               {/* Email Dashboard Title with Mobile Menu */}
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-4 mb-5">
                 <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                   className={`lg:hidden p-3 ${theme === 'dark' ? 'hover:bg-violet-950/20' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
                 >
                   {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
-                <h1 className="text-xl font-semibold">Email Dashboard</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Email Dashboard</h1>
               </div>
               
               {/* Search and Filter Row */}
-              <div className="flex items-center gap-6 mb-4">
-                <h2 className="text-2xl font-semibold whitespace-nowrap">
+              <div className="flex items-center gap-6 mb-5">
+                <h2 className="text-xl font-semibold whitespace-nowrap">
                   {selectedCategory === 'all' ? 'All Emails' : categories.find(c => c.id === selectedCategory)?.name}
-                  <span className={`ml-2 text-base ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <span className={`ml-3 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} font-normal`}>
                     ({filteredEmails.length})
                   </span>
                 </h2>
@@ -826,13 +887,14 @@ export default function EmailDashboard() {
               )}
               
               {/* Dynamic Table Header Row */}
-              <div className={`flex gap-4 text-xs font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider`}>
+              <div className={`flex gap-4 px-6 py-5 text-sm font-bold ${theme === 'dark' ? 'text-gray-300 bg-black/40' : 'text-gray-700 bg-gray-50'} uppercase tracking-wider rounded-lg mb-2`}>
                 {/* Checkbox Column */}
                 <div className="w-8 flex items-center">
                   <input
                     type="checkbox"
                     checked={selectedEmails.size > 0 && selectedEmails.size === filteredEmails.length}
                     onChange={toggleSelectAll}
+                    className="w-5 h-5 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
                     title="Select all"
                   />
                 </div>
@@ -845,13 +907,13 @@ export default function EmailDashboard() {
                         setSortBy('sender');
                         setSortOrder(sortBy === 'sender' && sortOrder === 'asc' ? 'desc' : 'asc');
                       }}
-                      className={`p-1 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'sender' ? 'text-violet-400' : ''}`}
+                      className={`p-1.5 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'sender' ? 'text-violet-400' : ''}`}
                       title="Sort by sender"
                     >
                       {sortBy === 'sender' ? (
-                        sortOrder === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
+                        sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                       ) : (
-                        <Filter className="w-3 h-3" />
+                        <Filter className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       )}
                     </button>
                   </div>
@@ -866,13 +928,13 @@ export default function EmailDashboard() {
                         setSortBy('subject');
                         setSortOrder(sortBy === 'subject' && sortOrder === 'asc' ? 'desc' : 'asc');
                       }}
-                      className={`p-1 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'subject' ? 'text-violet-400' : ''}`}
+                      className={`p-1.5 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'subject' ? 'text-violet-400' : ''}`}
                       title="Sort by subject"
                     >
                       {sortBy === 'subject' ? (
-                        sortOrder === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
+                        sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                       ) : (
-                        <Filter className="w-3 h-3" />
+                        <Filter className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       )}
                     </button>
                   </div>
@@ -887,13 +949,13 @@ export default function EmailDashboard() {
                         setSortBy('company');
                         setSortOrder(sortBy === 'company' && sortOrder === 'asc' ? 'desc' : 'asc');
                       }}
-                      className={`p-1 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'company' ? 'text-violet-400' : ''}`}
+                      className={`p-1.5 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'company' ? 'text-violet-400' : ''}`}
                       title="Sort by company"
                     >
                       {sortBy === 'company' ? (
-                        sortOrder === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
+                        sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                       ) : (
-                        <Filter className="w-3 h-3" />
+                        <Filter className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       )}
                     </button>
                   </div>
@@ -908,13 +970,13 @@ export default function EmailDashboard() {
                         setSortBy('priority');
                         setSortOrder(sortBy === 'priority' && sortOrder === 'asc' ? 'desc' : 'asc');
                       }}
-                      className={`p-1 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'priority' ? 'text-violet-400' : ''}`}
+                      className={`p-1.5 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'priority' ? 'text-violet-400' : ''}`}
                       title="Sort by priority"
                     >
                       {sortBy === 'priority' ? (
-                        sortOrder === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
+                        sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                       ) : (
-                        <Filter className="w-3 h-3" />
+                        <Filter className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       )}
                     </button>
                   </div>
@@ -929,13 +991,13 @@ export default function EmailDashboard() {
                         setSortBy('date');
                         setSortOrder(sortBy === 'date' && sortOrder === 'asc' ? 'desc' : 'asc');
                       }}
-                      className={`p-1 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'date' ? 'text-violet-400' : ''}`}
+                      className={`p-1.5 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'date' ? 'text-violet-400' : ''}`}
                       title="Sort by date"
                     >
                       {sortBy === 'date' ? (
-                        sortOrder === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
+                        sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                       ) : (
-                        <Filter className="w-3 h-3" />
+                        <Filter className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       )}
                     </button>
                   </div>
@@ -954,23 +1016,23 @@ export default function EmailDashboard() {
                         else if (statusFilter === 'starred') setStatusFilter('task');
                         else setStatusFilter('all');
                       }}
-                      className={`p-1 rounded hover:bg-violet-500/20 transition-all ${statusFilter !== 'all' ? 'text-violet-400' : ''}`}
+                      className={`p-1.5 rounded hover:bg-violet-500/20 transition-all ${statusFilter !== 'all' ? 'text-violet-400' : ''}`}
                       title={`Filter: ${statusFilter === 'all' ? 'All' : statusFilter === 'task' ? 'With Tasks' : statusFilter}`}
                     >
-                      <Filter className="w-3 h-3" />
+                      <Filter className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => {
                         setSortBy('status');
                         setSortOrder(sortBy === 'status' && sortOrder === 'asc' ? 'desc' : 'asc');
                       }}
-                      className={`p-1 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'status' ? 'text-violet-400' : ''}`}
+                      className={`p-1.5 rounded hover:bg-violet-500/20 transition-all ${sortBy === 'status' ? 'text-violet-400' : ''}`}
                       title="Sort by status"
                     >
                       {sortBy === 'status' ? (
-                        sortOrder === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
+                        sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                       ) : (
-                        <Filter className="w-3 h-3 opacity-50" />
+                        <Filter className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       )}
                     </button>
                   </div>
@@ -1036,15 +1098,15 @@ export default function EmailDashboard() {
             )}
 
             {/* Email Table */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-violet-500/50 scrollbar-track-transparent hover:scrollbar-thumb-violet-500/80">
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-violet-500/50 scrollbar-track-transparent hover:scrollbar-thumb-violet-500/80 px-4">
               {filteredEmails.map((email) => (
                 <div
                   key={email.id}
-                  className={`flex gap-4 items-center px-8 py-5 border-b transition-all duration-300 cursor-pointer group relative overflow-hidden ${
+                  className={`flex gap-6 items-center px-6 py-6 mb-2 rounded-lg border transition-all duration-300 cursor-pointer group relative overflow-hidden ${
                     theme === 'dark' 
-                      ? 'border-violet-900/30 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/30' 
-                      : 'border-gray-200 hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50 hover:border-violet-300'
-                  } ${!email.is_read ? 'bg-violet-500/5 border-l-4 border-l-violet-500' : ''} ${selectedEmails.has(email.id) ? theme === 'dark' ? 'bg-violet-500/20' : 'bg-violet-100' : ''}`}
+                      ? 'border-violet-900/30 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/30 hover:bg-violet-500/5' 
+                      : 'border-gray-200 hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50 hover:border-violet-300 hover:shadow-lg'
+                  } ${!email.is_read ? 'bg-violet-500/5 border-l-4 border-l-violet-500 font-medium' : theme === 'dark' ? 'bg-black/20' : 'bg-white'} ${selectedEmails.has(email.id) ? theme === 'dark' ? 'bg-violet-500/20' : 'bg-violet-100' : ''}`}
                   onClick={() => handleEmailClick(email)}
                 >
                   {/* Animated gradient overlay on hover (dark mode only) */}
@@ -1306,6 +1368,7 @@ export default function EmailDashboard() {
           </Card>
         </div>
       )}
+      </div>
     </>
   );
 }
